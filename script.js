@@ -37,12 +37,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Helper function to copy text to clipboard
 function copyToClipboard(text) {
-    const tempInput = document.createElement('input');
-    tempInput.value = text;
-    document.body.appendChild(tempInput);
-    tempInput.select();
-    document.execCommand('copy');
-    document.body.removeChild(tempInput);
+    // Use modern Clipboard API if available
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+            .catch(err => console.error('Failed to copy:', err));
+    } else {
+        // Fallback for older browsers
+        const tempInput = document.createElement('input');
+        tempInput.value = text;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+    }
 }
 
 // Show notification when URL is copied
@@ -67,34 +74,11 @@ function showCopyNotification() {
     setTimeout(() => {
         notification.style.animation = 'slideOut 0.3s ease-out';
         setTimeout(() => {
-            document.body.removeChild(notification);
+            if (notification.parentNode === document.body) {
+                document.body.removeChild(notification);
+            }
         }, 300);
     }, 3000);
 }
 
-// Add CSS animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    
-    @keyframes slideOut {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-    }
-`;
-document.head.appendChild(style);
+
